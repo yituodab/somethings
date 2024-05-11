@@ -65,7 +65,15 @@ else:
 	print('Warning：本启动器为往之门服务器定制，且仅能使用离线用户')
 	Input = input("是否安装？（是/否）")
 	if Input == '否':
-		exit()
+		put = input('已安装？（是/否）：')
+		if put == '是':
+			Put = input("安装目录？：")
+			file = open(option_dir+r"install", "a+")
+			file.write(Put)
+			file.close()
+			cls()
+		else:
+			exit()
 	if Input == '是':
 		install()
 		cls()
@@ -135,4 +143,4 @@ def body():
 				content = 'unknown'
 			print('当前用户：'+content)
 			launcher(content)
-body()
+			cls
