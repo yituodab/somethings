@@ -41,8 +41,7 @@ def install():
 		file = open(option_dir+r"install",  "a+")
 		file.write(minecraft_directory)
 		file.close()
-		print('安装forge中...')
-		minecraft_launcher_lib.forge.install_forge_version("1.18.2-40.2.0", minecraft_directory)
+
 
 	else:
 		print('安装中...')
@@ -50,8 +49,6 @@ def install():
 		file = open(option_dir+r"install", "a+")
 		file.write(Dir)
 		file.close()
-		print('安装forge中...')
-		minecraft_launcher_lib.forge.install_forge_version("1.18.2-40.2.0", Dir)
 
 cls()
 def info():
@@ -117,6 +114,8 @@ def body():
 			content = file.read()
 			if not os.path.exists(content+r"\mods"):
 				os.mkdir(content+r"\mods")
+			print('安装forge中...')
+			minecraft_launcher_lib.forge.install_forge_version("1.18.2-40.2.0", content)
 			print('下载中...')
 			get = requests.get("https://pan.miaoi.top/f/L2EDhB/mods.zip")
 			open(content+r"\mods\mod.zip", "wb").write(get.content)
