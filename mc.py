@@ -27,10 +27,12 @@ def cls():
 	os.system('cls')
 def launcher(player: str):
 	options = minecraft_launcher_lib.utils.generate_test_options()
-	dir = open(option_dir+r"\user", 'a+').read()
+	FILE = open(option_dir+r"\install", 'r')
+	LINE = FILE.readlines()
+	mcdir = LINE[0]
 	options['username'] = player
-	options['executablePath'] = os.environ.get('JAVA_HOME')+r"\bin/java.exe"
-	command = minecraft_launcher_lib.command.get_minecraft_command('1.18.2', dir, options)
+	options['executablePath'] = os.environ.get('JAVA_HOME')+r"\bin\java.exe"
+	command = minecraft_launcher_lib.command.get_minecraft_command("1.18.2", mcdir, options)
 	subprocess.run(command)
 #install
 def install():
