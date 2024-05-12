@@ -11,18 +11,29 @@ option_dir = r"C:\Program Files\wangzhimeng"
 if not os.path.exists(r"C:\Program Files\wangzhimeng\user"):
 	files = open(r"C:\Program Files\wangzhimeng\user", "w+")
 	files.close()
+current_max = 0
+def set_status(status: str):
+	print(status)
+
+def set_progress(progress: int):
+	if current_max != 0:
+		print(f"{progress}/{current_max}")
+
+def set_max(new_max: int):
+	global current_max
+	current_max = new_max
+
+callback = {
+	"setStatus": set_status,
+	"setProgress": set_progress,
+	"setMax": set_max
+}
+
 def installJDK(path: str):
 	url = "https://download.oracle.com/java/17/latest/jdk-17_windows-x64_bin.zip"
 	jdk = requests.get(url)
 	open(path, "wb").write(jdk.content)
 
-def checkJDK():
-	java = os.environ.get('JAVA_HOME')
-	if java == 'None':
-		print('%JAVA_HOME%未配置\n')
-		return False
-	else:
-		return True
 def cls():
 	os.system('cls')
 def launcher(player: str):
@@ -39,7 +50,7 @@ def install():
 	Dir = input("(默认安装目录：.minecraft)\n安装目录？(按回车选择默认)：")
 	if Dir == '':
 		print('安装中...')
-		minecraft_launcher_lib.install.install_minecraft_version("1.18.2", minecraft_directory)
+		minecraft_launcher_lib.install.install_minecraft_version("1.18.2", minecraft_directory, callback=callback)
 		file = open(option_dir+r"install",  "a+")
 		file.write(minecraft_directory)
 		file.close()
@@ -47,7 +58,7 @@ def install():
 
 	else:
 		print('安装中...')
-		minecraft_launcher_lib.install.install_minecraft_version("1.18.2", Dir)
+		minecraft_launcher_lib.install.install_minecraft_version("1.18.2", Dir,callback=callback)
 		file = open(option_dir+r"install", "a+")
 		file.write(Dir)
 		file.close()
@@ -102,10 +113,11 @@ def body():
 		user = open(option_dir+r'\user', "w+")
 		user.write(INPut)
 		user.close()
+		cls()
 		body()
 	if INput == 1 or INput == 2:
-		jdk = checkJDK()
-		if jdk == False:
+
+		if os.environ.get('JAVA_HOME') == 'None':
 			INPUT = input('是否为您安装OPEN JDK17?(是/否）：')
 			if INPUT == '是':
 				installJDK(r"C:\Program Files\Java\jdk-17.zip")
@@ -114,34 +126,43 @@ def body():
 					Zip.extract(zipFile, r"C:\Program Files\Java")
 				Zip.close()
 				os.environ["JAVA_HOME"] = r"C:\Program Files\Java\jdk-17.0.11"
+				java = os.environ.get('JAVA_HOME')
+				path = os.environ.get('Path')
+				os.environ['Path'] = java+";"+path
+				cls()
 			if INPUT == '否':
 				cls()
 				body()
-	if INput == 2:
-
-		with open(option_dir+r"\install", "r") as file:
-			# 读取文件内容
-			content = file.read()
-			if not os.path.exists(content+r"\mods"):
-				os.mkdir(content+r"\mods")
-			print('安装forge中...')
-			minecraft_launcher_lib.forge.install_forge_version("1.18.2-40.2.0", content)
-			print('下载中...')
-			get = requests.get("https://pan.miaoi.top/f/L2EDhB/mods.zip")
-			open(content+r"\mods\mod.zip", "wb").write(get.content)
-			Zipfile = zipfile.ZipFile(content+r"\mods\mod.zip", "r")
-			for Files in Zipfile.namelist():
-				Zipfile.extract(Files, content+r"\mods")
-			Zipfile.close()
-			cls()
-			body()
-	if INput == 1:
-		with open(option_dir+r"\user", "r") as file:
-			# 读取文件内容
-			content = file.read()
-			if content == '':
-				content = 'unknown'
-			print('当前用户：'+content)
-			launcher(content)
-			cls()
+		else:
+			if INput == 2:
+				with open(option_dir+r"\install", "r") as file:
+					# 读取文件内容
+					content = file.read()
+					if not os.path.exists(content+r"\mods"):
+						os.mkdir(content+r"\mods")
+					print('安装forge中...')
+					minecraft_launcher_lib.forge.install_forge_version("1.18.2-40.2.0", content, callback, os.environ.get('JAVA_HOME')+r"\bin\java.exe")
+					print('下载中...')
+					get = requests.get("https://pan.miaoi.top/f/L2EDhB/mods.zip")
+					open(content+r"\mods\mod.zip", "wb").write(get.content)
+					Zipfile = zipfile.ZipFile(content+r"\mods\mod.zip", "r")
+					for Files in Zipfile.namelist():
+						Zipfile.extract(Files, content+r"\mods")
+					Zipfile.close()
+					cls()
+					body()
+			if INput == 1:
+				with open(option_dir+r"\user", "r") as file:
+					# 读取文件内容
+					content = file.read()
+					if content == '':
+						content = 'unknown'
+					print('当前用户：'+content)
+				with open(option_dir+r"\install", "r") as file:
+					# 读取文件内容
+					content = file.read()
+					print('安装目录：'+content)
+					launcher(content)
+				cls()
+				body()
 body()
