@@ -143,4 +143,5 @@ def body():
 				content = 'unknown'
 			print('当前用户：'+content)
 			launcher(content)
-			cls
+			cls()
+body()
