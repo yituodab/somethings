@@ -52,8 +52,6 @@ def launcher(player: str):
 		print('forge已安装！')
 		forgeinput = input(r'是否使用forge？（是/否）')
 		if forgeinput == '是':
-			print('检查forge完整性...')
-			minecraft_launcher_lib.forge.install_forge_version(forge_version, mcdir, callback, runtime)
 			command = minecraft_launcher_lib.command.get_minecraft_command("1.18.2-forge-40.2.0", mcdir, options)
 		else:
 			command = minecraft_launcher_lib.command.get_minecraft_command("1.18.2", mcdir, options)
@@ -62,7 +60,7 @@ def launcher(player: str):
 def install():
 	Dir = input("(默认安装目录：.minecraft)\n安装目录？(按回车选择默认)：")
 	if Dir == '':
-		print('安装中...')
+		print('安装中...',end='')
 		minecraft_launcher_lib.install.install_minecraft_version("1.18.2", minecraft_directory, callback=callback)
 		file = open(option_dir+r"install",  "a+")
 		file.write(minecraft_directory)
@@ -70,7 +68,7 @@ def install():
 
 
 	else:
-		print('安装中...')
+		print('安装中...',end='')
 		minecraft_launcher_lib.install.install_minecraft_version("1.18.2", Dir,callback=callback)
 		file = open(option_dir+r"install", "a+")
 		file.write(Dir)
@@ -135,15 +133,16 @@ def body():
 			content = file.read()
 			if not os.path.exists(content+r"\mods"):
 				os.mkdir(content+r"\mods")
-			print('安装forge中...')
+			print('安装forge中...',end='')
 			minecraft_launcher_lib.forge.install_forge_version(forge_version, content, callback, runtime)
-			print("下载中...")
-			get = requests.get("https://pan.miaoi.top/f/L2EDhB/mods.zip")
-			open(content+r"\mods\mod.zip", "wb").write(get.content)
-			Zipfile = zipfile.ZipFile(content+r"\mods\mod.zip", "r")
-			for Files in Zipfile.namelist():
-				Zipfile.extract(Files, content+r"\mods")
-			Zipfile.close()
+			if not os.path.exists(mcdir+r'\mods\mod.zip'):
+				print("\n下载中...")
+				get = requests.get("https://pan.miaoi.top/f/L2EDhB/mods.zip")
+				open(content+r"\mods\mod.zip", "wb").write(get.content)
+				Zipfile = zipfile.ZipFile(content+r"\mods\mod.zip", "r")
+				for Files in Zipfile.namelist():
+					Zipfile.extract(Files, content+r"\mods")
+				Zipfile.close()
 			cls()
 			body()
 	if INput == 1:
