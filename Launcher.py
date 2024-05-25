@@ -4,6 +4,7 @@ import os
 import requests
 import subprocess
 minecraft_directory = ".minecraft"
+forge_version = '1.18.2-40.2.0'
 
 if not os.path.exists(r"C:\Program Files\wangzhimeng"):
 	os.mkdir(r"C:\Program Files\wangzhimeng")
@@ -13,11 +14,10 @@ if not os.path.exists(r"C:\Program Files\wangzhimeng\user"):
 	files.close()
 current_max = 0
 def set_status(status: str):
-	print(status)
-
+	print('\n\r'+status)
 def set_progress(progress: int):
 	if current_max != 0:
-		print(f"{progress}/{current_max}")
+		print(f"\r{progress}/{current_max}", end='')
 
 def set_max(new_max: int):
 	global current_max
@@ -28,22 +28,35 @@ callback = {
 	"setProgress": set_progress,
 	"setMax": set_max
 }
-
+runtime_version = "java-runtime-beta"
+FILE = open(option_dir+r"\install", 'r')
+LINE = FILE.readlines()
+mcdir = LINE[0]
+runtime = minecraft_launcher_lib.runtime.get_executable_path(runtime_version, mcdir)
+if runtime == 'None':
+	runtime = os.environ.get('JAVA_HOME')+r"\bin\java.exe"
+else:
+	runtime = minecraft_launcher_lib.runtime.get_executable_path(runtime_version, mcdir)
 def installJDK(path: str):
-	url = "https://download.oracle.com/java/17/latest/jdk-17_windows-x64_bin.zip"
-	jdk = requests.get(url)
-	open(path, "wb").write(jdk.content)
+	minecraft_launcher_lib.runtime.install_jvm_runtime(runtime_version, path, callback)
 
 def cls():
 	os.system('cls')
 def launcher(player: str):
 	options = minecraft_launcher_lib.utils.generate_test_options()
-	FILE = open(option_dir+r"\install", 'r')
-	LINE = FILE.readlines()
-	mcdir = LINE[0]
 	options['username'] = player
-	options['executablePath'] = os.environ.get('JAVA_HOME')+r"\bin\java.exe"
-	command = minecraft_launcher_lib.command.get_minecraft_command("1.18.2", mcdir, options)
+	options['executablePath'] = runtime
+	print('检查游戏完整性...',end='')
+	minecraft_launcher_lib.install.install_minecraft_version('1.18.2', mcdir, callback)
+	if os.path.exists(mcdir+r'\versions\1.18.2-forge-40.2.0'):
+		print('forge已安装！')
+		forgeinput = input(r'是否使用forge？（是/否）')
+		if forgeinput == '是':
+			print('检查forge完整性...')
+			minecraft_launcher_lib.forge.install_forge_version(forge_version, mcdir, callback, runtime)
+			command = minecraft_launcher_lib.command.get_minecraft_command("1.18.2-forge-40.2.0", mcdir, options)
+		else:
+			command = minecraft_launcher_lib.command.get_minecraft_command("1.18.2", mcdir, options)
 	subprocess.run(command)
 #install
 def install():
@@ -74,7 +87,7 @@ if os.path.exists(option_dir+r"\install"):
 	print('已安装！')
 else:
 	print('Warning：本启动器为往之门服务器定制，且仅能使用离线用户')
-	Input = input("是否安装？（是/否）")
+	Input = input("是否安装？（是/否）(已安装选择否）")
 	if Input == '否':
 		put = input('已安装？（是/否）：')
 		if put == '是':
@@ -93,8 +106,9 @@ else:
 def body():
 	with open(option_dir+r"\install", "r") as file:
 	# 读取文件内容
-		content = file.read()
-		print('安装目录：'+content)
+		global MCDIR
+		MCDIR = file.read()
+		print('安装目录：'+MCDIR)
 
 	with open(option_dir+r"\user", "r") as file:
 	# 读取文件内容
@@ -115,54 +129,35 @@ def body():
 		user.close()
 		cls()
 		body()
-	if INput == 1 or INput == 2:
-
-		if os.environ.get('JAVA_HOME') == 'None':
-			INPUT = input('是否为您安装OPEN JDK17?(是/否）：')
-			if INPUT == '是':
-				installJDK(r"C:\Program Files\Java\jdk-17.zip")
-				Zip = zipfile.ZipFile(r"C:\Program Files\Java\jdk-17.zip", 'r')
-				for zipFile in Zip.namelist():
-					Zip.extract(zipFile, r"C:\Program Files\Java")
-				Zip.close()
-				os.environ["JAVA_HOME"] = r"C:\Program Files\Java\jdk-17.0.11"
-				java = os.environ.get('JAVA_HOME')
-				path = os.environ.get('Path')
-				os.environ['Path'] = java+";"+path
-				cls()
-			if INPUT == '否':
-				cls()
-				body()
-		else:
-			if INput == 2:
-				with open(option_dir+r"\install", "r") as file:
-					# 读取文件内容
-					content = file.read()
-					if not os.path.exists(content+r"\mods"):
-						os.mkdir(content+r"\mods")
-					print('安装forge中...')
-					minecraft_launcher_lib.forge.install_forge_version("1.18.2-40.2.0", content, callback, os.environ.get('JAVA_HOME')+r"\bin\java.exe")
-					print('下载中...')
-					get = requests.get("https://pan.miaoi.top/f/L2EDhB/mods.zip")
-					open(content+r"\mods\mod.zip", "wb").write(get.content)
-					Zipfile = zipfile.ZipFile(content+r"\mods\mod.zip", "r")
-					for Files in Zipfile.namelist():
-						Zipfile.extract(Files, content+r"\mods")
-					Zipfile.close()
-					cls()
-					body()
-			if INput == 1:
-				with open(option_dir+r"\user", "r") as file:
-					# 读取文件内容
-					content = file.read()
-					if content == '':
-						content = 'unknown'
-					print('当前用户：'+content)
-				with open(option_dir+r"\install", "r") as file:
-					# 读取文件内容
-					content = file.read()
-					print('安装目录：'+content)
-					launcher(content)
-				cls()
-				body()
+	if INput == 2:
+		with open(option_dir+r"\install", "r") as file:
+			# 读取文件内容
+			content = file.read()
+			if not os.path.exists(content+r"\mods"):
+				os.mkdir(content+r"\mods")
+			print('安装forge中...')
+			minecraft_launcher_lib.forge.install_forge_version(forge_version, content, callback, runtime)
+			print("下载中...")
+			get = requests.get("https://pan.miaoi.top/f/L2EDhB/mods.zip")
+			open(content+r"\mods\mod.zip", "wb").write(get.content)
+			Zipfile = zipfile.ZipFile(content+r"\mods\mod.zip", "r")
+			for Files in Zipfile.namelist():
+				Zipfile.extract(Files, content+r"\mods")
+			Zipfile.close()
+			cls()
+			body()
+	if INput == 1:
+		with open(option_dir+r"\user", "r") as file:
+			# 读取文件内容
+			content = file.read()
+			if content == '':
+				content = 'unknown'
+				print('当前用户：'+content)
+			with open(option_dir+r"\install", "r") as file:
+				# 读取文件内容
+				content = file.read()
+				print('安装目录：'+content)
+				launcher(content)
+		cls()
+		body()
 body()
