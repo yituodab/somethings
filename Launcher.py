@@ -5,12 +5,13 @@ import requests
 import subprocess
 minecraft_directory = ".minecraft"
 forge_version = '1.18.2-40.2.0'
-
-if not os.path.exists(r"C:\Program Files\wangzhimeng"):
-	os.mkdir(r"C:\Program Files\wangzhimeng")
-option_dir = r"C:\Program Files\wangzhimeng"
-if not os.path.exists(r"C:\Program Files\wangzhimeng\user"):
-	files = open(r"C:\Program Files\wangzhimeng\user", "w+")
+home = os.environ.get('USERPROFILE')
+if not os.path.exists(home+r"\.config\wangzhimeng"):
+	os.mkdir(home+r"\.config")
+	os.mkdir(home+r"\.config\wangzhimeng")
+option_dir = home+r"\.config\wangzhimeng"
+if not os.path.exists(home+r"\.config\wangzhimeng\user"):
+	files = open(home+r"\.config\wangzhimeng\user", "w+")
 	files.close()
 current_max = 0
 def set_status(status: str):
@@ -29,8 +30,11 @@ callback = {
 	"setMax": set_max
 }
 runtime_version = "java-runtime-beta"
-FILE = open(option_dir+r"\install", 'r')
-LINE = FILE.readlines()
+if os.path.exists(option_dir+r"\install"):
+	FILE = open(option_dir+r"\install", 'r')
+	LINE = FILE.readlines()
+else:
+	LINE = minecraft_directory
 mcdir = LINE[0]
 runtime = minecraft_launcher_lib.runtime.get_executable_path(runtime_version, mcdir)
 if runtime == 'None':
@@ -46,6 +50,8 @@ def launcher(player: str):
 	options = minecraft_launcher_lib.utils.generate_test_options()
 	options['username'] = player
 	options['executablePath'] = runtime
+	options["launcherName"] = 'WZM'
+	options["launcherVersion"] = "114514"
 	print('检查游戏完整性...',end='')
 	minecraft_launcher_lib.install.install_minecraft_version('1.18.2', mcdir, callback)
 	if os.path.exists(mcdir+r'\versions\1.18.2-forge-40.2.0'):
@@ -62,7 +68,7 @@ def install():
 	if Dir == '':
 		print('安装中...',end='')
 		minecraft_launcher_lib.install.install_minecraft_version("1.18.2", minecraft_directory, callback=callback)
-		file = open(option_dir+r"install",  "a+")
+		file = open(option_dir+r"\install",  "a+")
 		file.write(minecraft_directory)
 		file.close()
 
@@ -70,7 +76,7 @@ def install():
 	else:
 		print('安装中...',end='')
 		minecraft_launcher_lib.install.install_minecraft_version("1.18.2", Dir,callback=callback)
-		file = open(option_dir+r"install", "a+")
+		file = open(option_dir+r"\install", "a+")
 		file.write(Dir)
 		file.close()
 
@@ -80,6 +86,7 @@ def info():
 	print('输入1：启动minecraft')
 	print(r'输入2：下载forge/服务器模组依赖')
 	print('输入3：更改用户')
+	print('输入4：更改安装目录')
 	print('输入0：退出')
 if os.path.exists(option_dir+r"\install"):
 	print('已安装！')
@@ -90,7 +97,7 @@ else:
 		put = input('已安装？（是/否）：')
 		if put == '是':
 			Put = input("安装目录？：")
-			file = open(option_dir+r"install", "a+")
+			file = open(option_dir+r"\install", "a+")
 			file.write(Put)
 			file.close()
 			cls()
@@ -102,11 +109,7 @@ else:
 
 #主要部分
 def body():
-	with open(option_dir+r"\install", "r") as file:
-	# 读取文件内容
-		global MCDIR
-		MCDIR = file.read()
-		print('安装目录：'+MCDIR)
+	print('安装目录：'+mcdir)
 
 	with open(option_dir+r"\user", "r") as file:
 	# 读取文件内容
@@ -148,15 +151,17 @@ def body():
 	if INput == 1:
 		with open(option_dir+r"\user", "r") as file:
 			# 读取文件内容
-			content = file.read()
-			if content == '':
-				content = 'unknown'
-				print('当前用户：'+content)
-			with open(option_dir+r"\install", "r") as file:
-				# 读取文件内容
-				content = file.read()
-				print('安装目录：'+content)
-				launcher(content)
+			player = file.read()
+			if player == '':
+				player = 'unknown'
+			print('当前用户：'+player)
+			print('安装目录：'+mcdir)
+			launcher(player)
+		cls()
+		body()
+	if INput == 4:
+		PUT = input('安装目录？')
+		open(option_dir+r'\install','w+').write(PUT)
 		cls()
 		body()
 body()
